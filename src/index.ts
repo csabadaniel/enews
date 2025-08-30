@@ -1,3 +1,4 @@
+
 import 'dotenv/config';
 import { GoogleGenAI } from '@google/genai';
 import nodemailer from 'nodemailer';
@@ -47,15 +48,20 @@ async function sendEmail(subject: string, text: string): Promise<void> {
   });
 }
 
-async function main() {
+export const handler = async (event: any = {}): Promise<any> => {
   try {
     const aiTextRaw = await getGoogleGenAIResponse(env.GOOGLE_GENAI_PROMPT);
     const aiText = cleanCodeBlockMarkers(aiTextRaw);
     await sendEmail(env.EMAIL_SUBJECT, aiText);
-    console.log('Email sent successfully.');
-  } catch (err) {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Email sent successfully.' }),
+    };
+  } catch (err: any) {
     console.error('Error:', err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message }),
+    };
   }
-}
-
-main();
+};
