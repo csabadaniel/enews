@@ -4,21 +4,21 @@ import nodemailer from 'nodemailer';
 import { cleanEnv, str, email } from 'envalid';
 
 const env = cleanEnv(process.env, {
-  GEMINI_API_KEY: str(),
-  GEMINI_MODEL: str(),
+  GOOGLE_GENAI_API_KEY: str(),
+  GOOGLE_GENAI_MODEL: str(),
   GMAIL_APP_USER: str(),
   GMAIL_APP_PASSWORD: str(),
   DESTINATION_EMAIL_ADDRESS: email(),
 });
 
-async function getGeminiResponse(prompt: string): Promise<string> {
-  const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+async function getGoogleGenAIResponse(prompt: string): Promise<string> {
+  const ai = new GoogleGenAI({ apiKey: env.GOOGLE_GENAI_API_KEY });
   const response = await ai.models.generateContent({
-    model: env.GEMINI_MODEL,
+    model: env.GOOGLE_GENAI_MODEL,
     contents: prompt,
   });
   if (!response.text) {
-    throw new Error('No response text from Gemini API');
+    throw new Error('No response text from GoogleGenAI API');
   }
   return response.text;
 }
@@ -42,8 +42,8 @@ async function sendEmail(subject: string, text: string): Promise<void> {
 
 async function main() {
   try {
-    const aiText = await getGeminiResponse('What is the meaning of life?');
-    await sendEmail('Gemini AI Response', aiText);
+    const aiText = await getGoogleGenAIResponse('What is the meaning of life?');
+    await sendEmail('GoogleGenAI Response', aiText);
     console.log('Email sent successfully.');
   } catch (err) {
     console.error('Error:', err);
