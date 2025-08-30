@@ -9,6 +9,8 @@ const env = cleanEnv(process.env, {
   GMAIL_APP_USER: str(),
   GMAIL_APP_PASSWORD: str(),
   DESTINATION_EMAIL_ADDRESS: email(),
+  EMAIL_SUBJECT: str(),
+  GOOGLE_GENAI_PROMPT: str(),
 });
 
 async function getGoogleGenAIResponse(prompt: string): Promise<string> {
@@ -42,8 +44,8 @@ async function sendEmail(subject: string, text: string): Promise<void> {
 
 async function main() {
   try {
-    const aiText = await getGoogleGenAIResponse('What is the meaning of life?');
-    await sendEmail('GoogleGenAI Response', aiText);
+    const aiText = await getGoogleGenAIResponse(env.GOOGLE_GENAI_PROMPT);
+    await sendEmail(env.EMAIL_SUBJECT, aiText);
     console.log('Email sent successfully.');
   } catch (err) {
     console.error('Error:', err);
