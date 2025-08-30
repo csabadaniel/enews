@@ -8,5 +8,8 @@
   },
   "devDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@google/genai": "^1.16.0"
   }
 }
