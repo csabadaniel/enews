@@ -1,30 +1,20 @@
 import 'dotenv/config';
 import { GoogleGenAI } from '@google/genai';
 import nodemailer from 'nodemailer';
+import { cleanEnv, str, email } from 'envalid';
 
-const apiKey = process.env.GEMINI_API_KEY;
-const modelName = process.env.GEMINI_MODEL;
-const gmailUser = process.env.GMAIL_APP_USER;
-const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
-const destinationEmail = process.env.DESTINATION_EMAIL_ADDRESS;
-
-function checkEnv() {
-  let missing = false;
-  if (!apiKey) { console.error('Missing GEMINI_API_KEY in .env'); missing = true; }
-  if (!modelName) { console.error('Missing GEMINI_MODEL in .env'); missing = true; }
-  if (!gmailUser) { console.error('Missing GMAIL_APP_USER in .env'); missing = true; }
-  if (!gmailAppPassword) { console.error('Missing GMAIL_APP_PASSWORD in .env'); missing = true; }
-  if (!destinationEmail) { console.error('Missing DESTINATION_EMAIL_ADDRESS in .env'); missing = true; }
-  if (missing) process.exit(1);
-}
+const env = cleanEnv(process.env, {
+  GEMINI_API_KEY: str(),
+  GEMINI_MODEL: str(),
+  GMAIL_APP_USER: str(),
+  GMAIL_APP_PASSWORD: str(),
+  DESTINATION_EMAIL_ADDRESS: email(),
+});
 
 async function getGeminiResponse(prompt: string): Promise<string> {
-  if (!modelName) {
-    throw new Error('GEMINI_MODEL is undefined');
-  }
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
   const response = await ai.models.generateContent({
-    model: modelName,
+    model: env.GEMINI_MODEL,
     contents: prompt,
   });
   if (!response.text) {
@@ -37,21 +27,20 @@ async function sendEmail(subject: string, text: string): Promise<void> {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: gmailUser,
-      pass: gmailAppPassword,
+      user: env.GMAIL_APP_USER,
+      pass: env.GMAIL_APP_PASSWORD,
     },
   });
 
   await transporter.sendMail({
-    from: gmailUser,
-    to: destinationEmail,
+    from: env.GMAIL_APP_USER,
+    to: env.DESTINATION_EMAIL_ADDRESS,
     subject,
     text,
   });
 }
 
 async function main() {
-  checkEnv();
   try {
     const aiText = await getGeminiResponse('What is the meaning of life?');
     await sendEmail('Gemini AI Response', aiText);
