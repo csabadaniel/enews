@@ -3,6 +3,11 @@ import { GoogleGenAI } from '@google/genai';
 import nodemailer from 'nodemailer';
 import { cleanEnv, str, email } from 'envalid';
 
+function cleanCodeBlockMarkers(text: string): string {
+  // Remove leading/trailing code block markers like ```html and ```
+  return text.replace(/^```html\s*/i, '').replace(/```\s*$/i, '');
+}
+
 const env = cleanEnv(process.env, {
   GOOGLE_GENAI_API_KEY: str(),
   GOOGLE_GENAI_MODEL: str(),
@@ -38,13 +43,14 @@ async function sendEmail(subject: string, text: string): Promise<void> {
     from: env.GMAIL_APP_USER,
     to: env.DESTINATION_EMAIL_ADDRESS,
     subject,
-    text,
+    html: text,
   });
 }
 
 async function main() {
   try {
-    const aiText = await getGoogleGenAIResponse(env.GOOGLE_GENAI_PROMPT);
+    const aiTextRaw = await getGoogleGenAIResponse(env.GOOGLE_GENAI_PROMPT);
+    const aiText = cleanCodeBlockMarkers(aiTextRaw);
     await sendEmail(env.EMAIL_SUBJECT, aiText);
     console.log('Email sent successfully.');
   } catch (err) {
